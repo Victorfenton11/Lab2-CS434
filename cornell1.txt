@@ -44,7 +44,10 @@ QUAD
 	SHININESS 10.0 
 
 // Front Face
-//QUAD POS -150 -150 -150 POS 150 -150 -150 POS -150 150 -150
+//QUAD 
+//    POS -150 -150 -150 
+//    POS 150 -150 -150
+//    POS -150 150 -150
 //    DIFF 0.25 0.25 0.25
 //    SPEC 0 1 0
 

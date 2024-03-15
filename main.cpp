@@ -74,6 +74,19 @@ public:
     }
 };
 
+class Quad : public Surface
+{
+public:
+    glm::vec3 v1;
+    glm::vec3 v2;
+    glm::vec3 v3;
+
+    bool intersect(Intersection res, Ray r)
+    {
+        return true;
+    }
+};
+
 pair<Sphere, float> intersect(Ray r, float tMin, float tMax)
 {
     Sphere s = Sphere();
@@ -114,8 +127,9 @@ int main(int argc, char *argv[])
     int ANTIALIAS;
     glm::vec3 bg_color;
     const int channels = 3; // Red, Green, Blue
-    vector<Surface> objects;
     vector<Light> lights;
+    vector<Sphere> spheres;
+    vector<Quad> quads;
 
     // Parse Input File from command line arg filename
     string line;
@@ -158,6 +172,7 @@ int main(int argc, char *argv[])
             if (line.rfind("LIGHT", 0) == 0)
             {
                 string format[3] = {"POS ", "DIFF ", "SPEC "};
+                Light l;
                 for (int i = 0; i < 3; i++)
                 {
                     if (!getline(file, line))
@@ -177,21 +192,115 @@ int main(int argc, char *argv[])
                     float x, y, z;
                     sscanf(line.substr(format[i].length()).c_str(), "%f %f %f", &x, &y, &z);
 
-                    Light l;
                     if (i == 0)
                         l.pos = glm::vec3(x, y, z);
                     else if (i == 1)
                         l.diffuse = glm::vec3(x, y, z);
                     else
                         l.specular = glm::vec3(x, y, z);
-
-                    lights.push_back(l);
                 }
+
+                lights.push_back(l);
+            }
+
+            if (line.rfind("SPHERE", 0) == 0)
+            {
+                string format[4] = {"POS ", "DIFF ", "SPEC ", "SHININESS "};
+                Sphere s;
+                for (int i = 0; i < 4; i++)
+                {
+                    if (!getline(file, line))
+                    {
+                        cout << "Invalid input file format" << endl;
+                        return 2;
+                    }
+
+                    ltrim(line);
+
+                    if (line.rfind(format[i], 0) != 0)
+                    {
+                        cout << "Invalid Sphere Format in input file" << endl;
+                        return 2;
+                    }
+
+                    if (i == 3)
+                    {
+                        float shininess;
+                        sscanf(line.substr(format[i].length()).c_str(), "%f", &shininess);
+                        s.shininess = shininess;
+                        break;
+                    }
+
+                    float x, y, z;
+                    sscanf(line.substr(format[i].length()).c_str(), "%f %f %f", &x, &y, &z);
+
+                    if (i == 0)
+                    {
+                        s.pos = glm::vec3(x, y, z);
+                        int rad_index = line.find("RADIUS");
+                        if (rad_index == string::npos)
+                        {
+                            cout << "Invalid Sphere format in input file" << endl;
+                            return 2;
+                        }
+                        sscanf(line.substr(rad_index + 6).c_str(), "%f", &s.radius);
+                    }
+                    else if (i == 1)
+                        s.diffuse = glm::vec3(x, y, z);
+                    else
+                        s.specular = glm::vec3(x, y, z);
+                }
+
+                spheres.push_back(s);
+            }
+
+            if (line.rfind("QUAD", 0) == 0)
+            {
+                string format[6] = {"POS ", "POS ", "POS ", "DIFF ", "SPEC ", "SHININESS "};
+                Quad q;
+                for (int i = 0; i < 6; i++)
+                {
+                    if (!getline(file, line))
+                    {
+                        cout << "Invalid input file format" << endl;
+                        return 2;
+                    }
+
+                    ltrim(line);
+
+                    if (line.rfind(format[i], 0) != 0)
+                    {
+                        cout << "Invalid Quad Format in input file" << endl;
+                        return 2;
+                    }
+
+                    if (i == 5)
+                    {
+                        float shininess;
+                        sscanf(line.substr(format[i].length()).c_str(), "%f", &shininess);
+                        q.shininess = shininess;
+                        break;
+                    }
+
+                    float x, y, z;
+                    sscanf(line.substr(format[i].length()).c_str(), "%f %f %f", &x, &y, &z);
+
+                    if (i == 0)
+                        q.v1 = glm::vec3(x, y, z);
+                    else if (i == 1)
+                        q.v2 = glm::vec3(x, y, z);
+                    else if (i == 2)
+                        q.v3 = glm::vec3(x, y, z);
+                    else if (i == 3)
+                        q.diffuse = glm::vec3(x, y, z);
+                    else
+                        q.specular = glm::vec3(x, y, z);
+                }
+
+                quads.push_back(q);
             }
         }
     }
-
-    cout << lights << endl;
 
     std::vector<unsigned char> image_data(resX * resY * channels, 0);
 
