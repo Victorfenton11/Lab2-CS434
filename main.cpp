@@ -59,7 +59,7 @@ public:
     glm::vec3 specular;
     float shininess;
 
-    virtual bool intersect(Intersection res, Ray r) = 0;
+    virtual float intersect(Intersection *res, Ray r) = 0;
 };
 
 class Sphere : public Surface
@@ -68,8 +68,9 @@ public:
     glm::vec3 pos;
     float radius;
 
-    bool intersect(Intersection res, Ray r)
+    float intersect(Intersection *res, Ray r)
     {
+
         return true;
     }
 };
@@ -81,28 +82,104 @@ public:
     glm::vec3 v2;
     glm::vec3 v3;
 
-    bool intersect(Intersection res, Ray r)
+    float intersect(Intersection *res, Ray r)
     {
         return true;
     }
 };
 
-pair<Sphere, float> intersect(Ray r, float tMin, float tMax)
-{
-    Sphere s = Sphere();
-    pair<Sphere, float> pair1;
-    pair1 = make_pair(s, 0.0);
-    return pair1;
-}
-
-glm::vec3 TraceRay(Ray r, int depth)
-{
-    return glm::vec3(0, 0, 0);
-}
-
-Ray CalculateRay()
+Ray Reflected(Ray r, glm::vec3 p)
 {
     Ray r;
+    return r;
+}
+
+Ray Refracted(Ray r, glm::vec3 p)
+{
+    Ray r;
+    return r;
+}
+
+glm::vec3 Phong(glm::vec3 p, Light l)
+{
+    return glm::vec3(0.0f, 0.0f, 0.0f);
+}
+
+int CastShadowRays(glm::vec3 p)
+{
+    return 0;
+}
+
+bool FirstIntersection(Ray r, glm::vec3 *p, vector<Sphere> spheres, vector<Quad> quads)
+{
+    Intersection first;
+    first.t = 1000000.0f;
+    bool hit = false;
+    // Check Spheres
+    for (int i = 0; i < spheres.size(); i++)
+    {
+        Intersection current;
+        if (spheres[i].intersect(&current, r))
+        {
+            hit = true;
+            if (current.t < first.t)
+                first = current;
+        }
+    }
+
+    // Check quads
+    for (int j = 0; j < quads.size(); j++)
+    {
+        Intersection current;
+        if (quads[j].intersect(&current, r))
+        {
+            hit = true;
+            if (current.t < first.t)
+                first = current;
+        }
+    }
+
+    if (!hit)
+        return false;
+
+    *p = first.hitLocation;
+    return true;
+}
+
+void TraceRay(Ray r, int depth, glm::vec3 *color, vector<Light> lights, vector<Sphere> spheres, vector<Quad> quads)
+{
+    glm::vec3 intersection;
+    if (!FirstIntersection(r, &intersection, spheres, quads))
+        return;
+    int contributedLights = CastShadowRays(intersection);
+    for (int i = 0; i < contributedLights; i++)
+        *color += Phong(intersection, lights[i]);
+    if (depth <= 0)
+        return;
+    Ray reflected = Reflected(r, intersection);
+    Ray refracted = Refracted(r, intersection);
+    TraceRay(reflected, depth - 1, color, lights, spheres, quads);
+    TraceRay(refracted, depth - 1, color, lights, spheres, quads);
+    return;
+}
+
+Ray CalculateRay(glm::vec3 cameraPos, glm::vec3 up, int i, int j, int resX, int resY, float fov)
+{
+    glm::vec3 lookAt = glm::vec3(0.0f, 0.0f, -1.0f);
+    glm::vec3 l = glm::normalize(lookAt - cameraPos);
+    glm::vec3 v = glm::normalize(glm::cross(l, up));
+    glm::vec3 u = glm::cross(v, l);
+
+    float fov_rad = glm::radians(fov);
+    float aspect_ratio = (float)resX / (float)resY;
+    glm::vec3 ll = cameraPos + (1 / glm::tan(fov_rad / 2)) * l - aspect_ratio * v - u;
+    glm::vec3 p = ll + ((2.0f * aspect_ratio * v * (float)i) / (float)resX) + (2.0f * u * (float)j);
+    glm::vec3 d = glm::normalize(p - cameraPos);
+
+    Ray r;
+    r.origin = cameraPos;
+    r.direction = d;
+
     return r;
 }
 
@@ -127,6 +204,7 @@ int main(int argc, char *argv[])
     int ANTIALIAS;
     glm::vec3 bg_color;
     const int channels = 3; // Red, Green, Blue
+    float fov = 60.0;
     vector<Light> lights;
     vector<Sphere> spheres;
     vector<Quad> quads;
@@ -146,6 +224,12 @@ int main(int argc, char *argv[])
             if (line.rfind("ANTIALIAS ", 0) == 0)
             {
                 sscanf(line.substr(10).c_str(), "%d", &ANTIALIAS);
+                continue;
+            }
+
+            if (line.rfind("FOV ", 0) == 0)
+            {
+                sscanf(line.substr(4).c_str(), "%f", &fov);
                 continue;
             }
 
@@ -304,12 +388,15 @@ int main(int argc, char *argv[])
 
     std::vector<unsigned char> image_data(resX * resY * channels, 0);
 
+    glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 0.0f);
+    glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+
     for (int i = 0; i < resX; ++i)
         for (int j = 0; j < resY; ++j)
         {
-            // Ray ray = CalculateRay(); // Get the primary ray
-            // glm::vec3 color = TraceRay(ray, MAXDEPTH);
-            glm::vec3 color = glm::vec3(255, 0, 0);
+            Ray ray = CalculateRay(cameraPos, up, i, j, resX, resY, fov); // Get the primary ray
+            glm::vec3 color;
+            TraceRay(ray, MAXDEPTH, &color);
             int index = (j * resX + i) * channels;
             image_data[index] = color[0];
             image_data[index + 1] = color[1];
