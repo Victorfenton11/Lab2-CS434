@@ -27,7 +27,6 @@ Purdue University
 #include <algorithm>
 #include <cctype>
 #include <memory>
-#include <cmath>
 
 using namespace std;
 
@@ -132,7 +131,32 @@ public:
 
     bool intersect(Intersection *res, Ray r)
     {
-        return false;
+        glm::vec3 p = p2 - p1;
+        glm::vec3 q = p3 - p1;
+        glm::vec3 tmp1 = glm::cross(r.direction, q);
+
+        float dot1 = glm::dot(tmp1, p);
+        float eps = 0.00001;
+        if ((dot1 > -eps) && (dot1 < eps))
+            return false;
+
+        float f = 1 / dot1;
+        glm::vec3 s = r.origin - p1;
+        float u = f * glm::dot(s, tmp1);
+        if ((u < 0.f) || (u > 1.f))
+            return false;
+
+        glm::vec3 tmp2 = glm::cross(s, p);
+        float v = f * glm::dot(r.direction, tmp2);
+        if ((v < 0.f) || (u + v > 1.f))
+            return false;
+
+        res->t = f * glm::dot(q, tmp2);
+        res->hitLocation = r.origin + res->t * r.direction;
+        res->normal = glm::normalize(glm::cross(p, q)); // Assuming counter-clockwise winding order
+        res->obj = this;
+
+        return true;
     }
 };
 
@@ -275,24 +299,38 @@ void TraceRay(Ray r, int depth, glm::vec3 cameraPos, glm::vec3 *color, vector<Li
     refracted.origin = intersection.hitLocation;
     refracted.direction = glm::refract(r.direction, intersection.normal);
     */
-    TraceRay(reflected, depth - 1, cameraPos, color, lights, objects, ambient);
-    // TraceRay(refracted, depth - 1, cameraPos, color, lights, objects, ambient);
+    // TraceRay(reflected, depth - 1, cameraPos, color, lights, objects, ambient);
+    //  TraceRay(refracted, depth - 1, cameraPos, color, lights, objects, ambient);
     return;
 }
 
-Ray CalculateRay(glm::vec3 cameraPos, int i, int j, int resX, int resY, float fov)
+Ray CalculateRay(glm::vec3 cameraPos, glm::vec3 up, glm::vec3 lookAt, int i, int j, int resX, int resY, float fov)
 {
     float scale = glm::tan(glm::radians(fov * 0.5f));
     float aspect_ratio = (float)resX / (float)resY;
+    /*
     float x = (2 * (i + 0.5f) / (float)resX - 1) * aspect_ratio * scale;
     float y = (1 - 2 * (j + 0.5f) / (float)resY) * scale;
-    glm::vec3 dir = glm::normalize(glm::vec3(x, y, -1)); // camera is placed at the origin and looking towards -z
 
     Ray r;
     r.origin = cameraPos;
-    r.direction = dir;
+    r.direction = glm::normalize(glm::vec3(x, y, -1));
+    */
 
-    return r;
+    glm::vec3 w = glm::normalize(cameraPos - lookAt);
+    glm::vec3 u = glm::normalize(glm::cross(up, w));
+    glm::vec3 v = glm::cross(w, u);
+
+    // Calculate ray direction
+    float x = (2 * (i + 0.5f) / static_cast<float>(resX) - 1) * aspect_ratio * scale;
+    float y = (1 - 2 * (j + 0.5f) / static_cast<float>(resY)) * scale;
+    glm::vec3 direction = glm::normalize(x * u + y * v - w);
+
+    Ray ray;
+    ray.origin = cameraPos;
+    ray.direction = direction;
+
+    return ray;
 }
 
 inline void ltrim(std::string &s)
@@ -318,6 +356,9 @@ int main(int argc, char *argv[])
     const int channels = 3; // Red, Green, Blue
     float fov = 90.0f;
     float ambient = 0.0f;
+    glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 0.0f);
+    glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+    glm::vec3 lookAt = glm::vec3(0.0f, 0.0f, -1.0f);
     vector<Light> lights;
     vector<unique_ptr<Surface>> objects;
 
@@ -368,6 +409,30 @@ int main(int argc, char *argv[])
             if (line.rfind("RESOLUTION ", 0) == 0)
             {
                 sscanf(line.substr(11).c_str(), "%d %d", &resX, &resY);
+                continue;
+            }
+
+            if (line.rfind("CAMERA ", 0) == 0)
+            {
+                float x, y, z;
+                sscanf(line.substr(7).c_str(), "%f %f %f", &x, &y, &z);
+                cameraPos = glm::vec3(x, y, z);
+                continue;
+            }
+
+            if (line.rfind("UP ", 0) == 0)
+            {
+                float x, y, z;
+                sscanf(line.substr(3).c_str(), "%f %f %f", &x, &y, &z);
+                up = glm::vec3(x, y, z);
+                continue;
+            }
+
+            if (line.rfind("LOOKAT ", 0) == 0)
+            {
+                float x, y, z;
+                sscanf(line.substr(7).c_str(), "%f %f %f", &x, &y, &z);
+                lookAt = glm::vec3(x, y, z);
                 continue;
             }
 
@@ -472,7 +537,7 @@ int main(int argc, char *argv[])
 
                     if (line.rfind(format[i], 0) != 0)
                     {
-                        cout << "Invalid Quad Format in input file" << endl;
+                        cout << "Invalid Triangle Format in input file" << endl;
                         return 2;
                     }
 
@@ -556,12 +621,11 @@ int main(int argc, char *argv[])
 
     std::vector<unsigned char> image_data(resX * resY * channels, 0);
 
-    glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 0.0f);
-
+    // #pragma omp parallel for schedule(dynamic)
     for (int i = 0; i < resX; ++i)
         for (int j = 0; j < resY; ++j)
         {
-            Ray ray = CalculateRay(cameraPos, i, j, resX, resY, fov); // Get the primary ray
+            Ray ray = CalculateRay(cameraPos, up, lookAt, i, j, resX, resY, fov); // Get the primary ray
             glm::vec3 color = glm::vec3(0.0f, 0.0f, 0.0f);
             TraceRay(ray, MAXDEPTH, cameraPos, &color, lights, objects, ambient);
 

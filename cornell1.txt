@@ -1,68 +1,80 @@
+// Cornell Box for RayTracer
 ANTIALIAS 3
-BACKGROUND 0 0 0
-MAXDEPTH 17
+BACKGROUND 0 0 0        // Background color
+MAXDEPTH 17              // Raytracing depth
+FOV 90
+CAMERA 0 0 200
 LIGHT
     POS 10 10 100
-    DIFF 1.0 1.0 1.0
-    SPEC 1.0 1.0 1.0
+    DIFF 1.0 1.0 1.0 	//white light
+    SPEC 1.0 1.0 1.0	//full  white specular
 
 LIGHT
     POS -100 10 -10
-    DIFF 1.0 0.0 0.0
-    SPEC 1.0 1.0 1.0
+    DIFF 1.0 0.0 0.0	//red light
+    SPEC 1.0 1.0 1.0	//full white specular
+
 
 SPHERE
-    POS 0 0 -100 RADIUS 20
-    DIFF 1.0 0.0 0.0
-    SPEC 1.0 1.0 1.0
-    SHININESS 200.0
+    POS 0 0 0 RADIUS 45
+    DIFF 1.0 0.33 0.33  //some diffuse
+    SPEC 1.0 1.0 1.0 	//perfect mirror
+	SHININESS 20.0          // Shininess coefficient
+	
+SPHERE
+    POS 0 60 75 RADIUS 15
+    DIFF 1.0 1.0 0.0  //yellow diffuse sphere
+    SPEC 0.0 0.0 0.0 
+	SHININESS 200.0          // Shininess coefficient
 
-QUAD
-    POS -50 -50 -200
-    POS -50 50 -200
-    POS 50 50 -200
-    DIFF 0.75 0.75 0.75
-    SPEC 0 0 0
-    SHININESS 10.0
+// Back Face
+QUAD 
+     POS -150 -150 150
+     POS 150 -150 150
+     POS -150 150 150
+     DIFF 0.25 0.25 0.25
+     SPEC 1.0 1.0 0.0
+	 SHININESS 2000.0
+	 
+// Right Face
+QUAD 
+    POS 150 -150 150
+    POS 150 -150 -150
+    POS 150 150 150
+    DIFF 1.0 1.0 1.0
+    SPEC 1.0  0 0
+	SHININESS 10.0 
 
-QUAD
-    POS 50 -50 -200
-    POS 50 50 -200
-    POS -50 50 -200
-    DIFF 0.75 0.75 0.75
-    SPEC 0 0 0
-    SHININESS 10.0
+// Front Face
+//QUAD POS -150 -150 -150 POS 150 -150 -150 POS -150 150 -150
+//    DIFF 0.25 0.25 0.25
+//    SPEC 0 1 0
 
+// Left Face
 QUAD
-    POS -50 -50 -200
-    POS 50 -50 -200
-    POS 50 -50 0
-    DIFF 0.25 0.25 0.25
-    SPEC 0 0 0
-    SHININESS 10.0
-
-QUAD
-    POS 50 -50 0
-    POS -50 -50 0
-    POS -50 -50 -200
-    DIFF 0.25 0.25 0.25
-    SPEC 0 0 0
-    SHININESS 10.0
-
-QUAD
-    POS -50 -50 -200
-    POS -50 -50 0
-    POS -50 50 0
+    POS -150 -150 -150
+    POS -150 -150 150 
+    POS -150 150 -150
     DIFF 0.7 0.7 0.1255
     SPEC 1.0 1.0 1.0
-    SHININESS 10.0
+	SHININESS 10.0 
 
+// Bottom Face
 QUAD
-    POS -50 50 0
-    POS -50 50 -200
-    POS -50 -50 -200
-    DIFF 0.7 0.7 0.1255
-    SPEC 1.0 1.0 1.0
-    SHININESS 10.0
+    POS -150 -150 150
+    POS 150 -150 150
+    POS -150 -150 -150
+    DIFF 0 1.0 0
+    SPEC 0 0 0
+	SHININESS 10.0 
 
-RESOLUTION 800 800
+// Top Face
+QUAD
+    POS -150 150 150
+    POS 150 150 150
+    POS -150 150 -150
+    DIFF 1.0 0.2 0.2
+    SPEC 1 1 1
+	SHININESS 100.0 
+
+RESOLUTION 800 800	//image resolution
