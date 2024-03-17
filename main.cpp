@@ -611,9 +611,9 @@ int main(int argc, char *argv[])
                         s->specular = glm::vec3(x, y, z);
                 }
 
-                s->p = p2;
-                s->v1 = p1 - p2;
-                s->v2 = p3 - p2;
+                s->p = p1;
+                s->v1 = p2 - p1;
+                s->v2 = p3 - p1;
                 objects.push_back(unique_ptr<Quad>(s));
             }
         }
