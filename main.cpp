@@ -267,12 +267,16 @@ void TraceRay(Ray r, int depth, glm::vec3 cameraPos, glm::vec3 *color, vector<Li
     {
         *color += 255.0f * glm::clamp(Phong(intersection, lights[i], cameraPos, ambient), 0.0f, 1.0f);
     }
+    Ray reflected;
+    reflected.origin = intersection.hitLocation;
+    reflected.direction = glm::reflect(r.direction, intersection.normal);
     /*
-    Ray reflected = Reflected(r, intersection);
-    Ray refracted = Refracted(r, intersection);
-    TraceRay(reflected, depth - 1, color, lights, spheres, quads);
-    TraceRay(refracted, depth - 1, color, lights, spheres, quads);
+    Ray refracted;
+    refracted.origin = intersection.hitLocation;
+    refracted.direction = glm::refract(r.direction, intersection.normal);
     */
+    TraceRay(reflected, depth - 1, cameraPos, color, lights, objects, ambient);
+    // TraceRay(refracted, depth - 1, cameraPos, color, lights, objects, ambient);
     return;
 }
 
