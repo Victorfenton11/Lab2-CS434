@@ -1,28 +1,73 @@
-CAMERA 0.0 0.0 40.0
-UP 0.0 1.0 0.0
-LOOKAT 0.0 0.0 9.9
-FOV 36.5
-RESOLUTION 800 800
-
-ANTIALIAS 0
-BACKGROUND 0 0 0
-MAXDEPTH 7
-
-AMBIENT 0.05
+// Cornell Box with 3 spheres and walls
+ANTIALIAS 3
+BACKGROUND 0 0 0        // Background color
+MAXDEPTH 17              // Raytracing depth
+FOV 90
+LOOKAT 0 0 0
+CAMERA 0 0 10
+UP 0 1 0
 
 LIGHT
-    POS 0 9 0
-    DIFF 1 1 1
-    SPEC 1 1 1
+    POS 0 0 100
+    DIFF 1.0 1.0 1.0	// Red light
+    SPEC 1.0 1.0 1.0	// Full white specular
 
 SPHERE
-    POS 5 -6 1 RADIUS 4
-    DIFF 0.8 0.8 0.8
+    POS 5 0 1 RADIUS 1
+    DIFF 1.0 1.0 0	// Yellow sphere
+    SPEC 1.0 1.0 0
+    SHININESS 100
+
+SPHERE
+    POS 7 0 1 RADIUS 1
+    DIFF 0.8 0 0	// Red sphere
     SPEC 0 0 0
     SHININESS 0
 
 SPHERE
-    POS -5 -6 -5 RADIUS 4
-    DIFF 0 0 0
-    SPEC 0 0 0
-    SHININESS 0
+    POS 6 3 1 RADIUS 1
+    DIFF 0 1 0		// Green sphere
+    SPEC 1.0 1.0 0.0
+    SHININESS 100.0
+
+QUAD
+    POS -1 -1 0
+    POS 1 -1 0
+    POS -1 1 0
+    DIFF 1.0 1.0 1.0	// White wall
+    SPEC 1.0 1.0 1.0
+	SHININESS 100.0
+
+QUAD
+    POS -1 -1 0
+    POS 1 -1 0
+    POS -1 -1 2
+    DIFF 1.0 0 0		// Red wall
+    SPEC 1.0 1.0 0
+	SHININESS 100.0
+
+QUAD
+    POS -1 -1 0
+    POS -1 1 0
+    POS -1 -1 2
+    DIFF 0 1 0		// Green wall
+    SPEC 1.0 1.0 0.0
+	SHININESS 100.0
+
+QUAD
+    POS 1 -1 0
+    POS 1 1 0
+    POS 1 -1 2
+    DIFF 1 0 0		// Blue wall
+    SPEC 1.0 1.0 0.0
+	SHININESS 100.0
+
+QUAD
+    POS -1 1 0
+    POS 1 1 0
+    POS -1 1 2
+    DIFF 1 1 1		// White wall
+    SPEC 1.0 1.0 1.0
+	SHININESS 100.0
+
+RESOLUTION 800 800	// Image resolution

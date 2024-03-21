@@ -9,14 +9,28 @@ UP 0 1 0
 
 LIGHT
     POS 0 0 100
-    DIFF 1.0 0.0 0.0	//red light
+    DIFF 1.0 1.0 1.0	//red light
     SPEC 1.0 1.0 1.0	//full white specular
+
+SPHERE
+    POS 5 0 1 RADIUS 4
+    DIFF 0.8 0 0
+    SPEC 0 0 0
+    SHININESS 0
 
 QUAD
     POS -1 -1 0
     POS 1 -1 0
     POS -1 1 0
-    DIFF 1.0 1.0 1.0
+    DIFF 1.0 1.0 0
+    SPEC 1.0 1.0 0.0
+	SHININESS 100.0
+
+TRIANGLE
+    POS -9 -9 0
+    POS 0 -9 0
+    POS -9 0 0
+    DIFF 0 1 0
     SPEC 1.0 1.0 0.0
 	SHININESS 100.0
 

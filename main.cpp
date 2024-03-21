@@ -98,7 +98,7 @@ public:
             res->obj = this;
 
             // Add bias to the intersection point to avoid self-intersection
-            res->hitLocation += res->normal * 0.0001f;
+            res->hitLocation += res->normal * 0.005f;
 
             return true;
         }
@@ -112,7 +112,7 @@ public:
             res->obj = this;
 
             // Add bias to the intersection point
-            res->hitLocation += res->normal * 0.0001f;
+            res->hitLocation += res->normal * 0.005f;
 
             return true;
         }
@@ -171,8 +171,8 @@ public:
 
         res->t = t;
         res->hitLocation = P;
-        res->normal = glm::normalize(tmp1);      // Assuming counter-clockwise winding order
-        res->hitLocation += 0.01f * res->normal; // Add bias to avoid self-intersection
+        res->normal = glm::normalize(tmp1);       // Assuming counter-clockwise winding order
+        res->hitLocation += 0.005f * res->normal; // Add bias to avoid self-intersection
         res->obj = this;
         return true;
     }
@@ -311,11 +311,11 @@ int main(int argc, char *argv[])
     }
 
     // Set up scene, define and save all objects in scene
-    int resX;
-    int resY;
-    int MAXDEPTH;
+    int resX = 800;
+    int resY = 800;
+    int MAXDEPTH = 1;
     int ANTIALIAS;
-    glm::vec3 bg_color;
+    glm::vec3 bg_color = glm::vec3(0.f);
     const int channels = 3; // Red, Green, Blue
     float fov = 90.0f;
     float ambient = 0.0f;
@@ -351,7 +351,7 @@ int main(int argc, char *argv[])
 
             if (line.rfind("AMBIENT ", 0) == 0)
             {
-                sscanf(line.substr(8).c_str(), "%f", &fov);
+                sscanf(line.substr(8).c_str(), "%f", &ambient);
                 continue;
             }
 
