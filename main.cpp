@@ -27,12 +27,13 @@ Purdue University
 #include <algorithm>
 #include <cctype>
 #include <memory>
+#include <omp.h>
 
 using namespace std;
 
 class Surface;
 class Sphere;
-class Quad;
+class Triangle;
 
 typedef struct
 {
@@ -133,90 +134,47 @@ public:
     {
         glm::vec3 p = p2 - p1;
         glm::vec3 q = p3 - p1;
-        glm::vec3 tmp1 = glm::cross(r.direction, q);
+        glm::vec3 tmp1 = glm::cross(p, q);
 
-        float dot1 = glm::dot(tmp1, p);
-        float eps = 0.00001;
-        if ((dot1 > -eps) && (dot1 < eps))
+        float dot1 = glm::dot(tmp1, r.direction);
+        float eps = 0.0000000001;
+        if (fabs(dot1) < eps)
             return false;
 
-        float f = 1 / dot1;
-        glm::vec3 s = r.origin - p1;
-        float u = f * glm::dot(s, tmp1);
-        if ((u < 0.f) || (u > 1.f))
+        float d = glm::dot(-tmp1, p1);
+        float t = (-1.0f * (glm::dot(tmp1, r.origin) + d)) / dot1;
+
+        if (t < 0.f)
+            return false; // triangle is behind the ray
+
+        glm::vec3 P = r.origin + (t * r.direction);
+
+        // edge 1
+        glm::vec3 vp1 = P - p1;
+        glm::vec3 C = glm::cross(p, vp1);
+        if (glm::dot(tmp1, C) < 0.f)
             return false;
 
-        glm::vec3 tmp2 = glm::cross(s, p);
-        float v = f * glm::dot(r.direction, tmp2);
-        if ((v < 0.f) || (u + v > 1.f))
+        // edge 2
+        glm::vec3 edge2 = p3 - p2;
+        glm::vec3 vp2 = P - p2;
+        C = glm::cross(edge2, vp2);
+        if (glm::dot(tmp1, C) < 0.f)
             return false;
 
-        res->t = f * glm::dot(q, tmp2);
-        res->hitLocation = r.origin + res->t * r.direction;
-        res->normal = glm::normalize(glm::cross(p, q)); // Assuming counter-clockwise winding order
+        // edge 3
+        glm::vec3 edge3 = p1 - p3;
+        glm::vec3 vp3 = P - p3;
+        C = glm::cross(edge3, vp3);
+        if (glm::dot(tmp1, C) < 0)
+            return false;
+
+        res->t = t;
+        res->hitLocation = P;
+        res->normal = glm::normalize(tmp1);      // Assuming counter-clockwise winding order
+        res->hitLocation += 0.01f * res->normal; // Add bias to avoid self-intersection
         res->obj = this;
-
         return true;
-    }
-};
-
-class Quad : public Surface
-{
-public:
-    Quad() {}
-    virtual ~Quad() {}
-    glm::vec3 p;
-    glm::vec3 v1;
-    glm::vec3 v2;
-
-    bool intersect(Intersection *res, Ray r)
-    {
-        // Compute the normal of the quad
-        glm::vec3 normal = glm::normalize(glm::cross(v1, v2));
-
-        // Compute the intersection point with the plane of the quad
-        float denominator = glm::dot(normal, r.direction);
-        if (fabs(denominator) < 0.0001f) // Ray is parallel to the plane
-            return false;
-
-        float t = glm::dot(p - r.origin, normal) / denominator;
-        if (t < 0) // Intersection point is behind the ray origin
-            return false;
-
-        glm::vec3 intersectionPoint = r.origin + t * r.direction;
-
-        // Compute the vectors from the intersection point to the vertices of the quad
-        glm::vec3 w0 = p - intersectionPoint;
-        glm::vec3 u = v1;
-        glm::vec3 v = v2;
-
-        // Compute the dot products
-        float dotUU = glm::dot(u, u);
-        float dotUV = glm::dot(u, v);
-        float dotVV = glm::dot(v, v);
-        float dotWU = glm::dot(w0, u);
-        float dotWV = glm::dot(w0, v);
-
-        // Compute the barycentric coordinates
-        float denominatorUV = dotUU * dotVV - dotUV * dotUV;
-        float s = (dotVV * dotWU - dotUV * dotWV) / denominatorUV;
-        float tBary = (dotUU * dotWV - dotUV * dotWU) / denominatorUV;
-
-        // Check if the intersection point lies within the quad
-        if (s >= 0 && s <= 1 && tBary >= 0 && tBary <= 1 && s + tBary <= 1)
-        {
-            res->t = t;
-            res->hitLocation = intersectionPoint;
-            res->normal = normal;
-            res->obj = this;
-
-            // Add bias to the intersection point
-            res->hitLocation += normal * 0.0001f;
-
-            return true;
-        }
-
-        return false;
     }
 };
 
@@ -236,14 +194,14 @@ glm::vec3 Phong(Intersection p, Light l, glm::vec3 cameraPos, float ambient)
     float specular_factor = std::pow(std::max(0.0f, glm::dot(R, V)), p.obj->shininess);
     specular = p.obj->specular * l.specular * specular_factor;
 
-    return ambient + diffuse + specular;
+    return glm::vec3(ambient) + diffuse + specular;
 }
 
 bool FirstIntersection(Ray r, Intersection *first, vector<unique_ptr<Surface>> &objects)
 {
     first->t = 100000.0f;
     bool hit = false;
-    // Check Spheres
+
     for (int i = 0; i < objects.size(); i++)
     {
         Intersection current;
@@ -271,26 +229,39 @@ vector<int> CastShadowRays(Intersection intersection, vector<Light> lights, vect
         shadow_ray.direction = glm::normalize(lights[i].pos - intersection.hitLocation);
         bool hit = FirstIntersection(shadow_ray, &p, objects);
         if (!hit)
+        {
             visible_lights.push_back(i);
+        }
         continue;
     }
     return visible_lights;
 }
 
-void TraceRay(Ray r, int depth, glm::vec3 cameraPos, glm::vec3 *color, vector<Light> lights, vector<unique_ptr<Surface>> &objects, float ambient)
+bool TraceRay(Ray r, int depth, glm::vec3 cameraPos, glm::vec3 *color, vector<Light> lights, vector<unique_ptr<Surface>> &objects, float ambient)
 {
     if (depth <= 0)
-        return;
+        return true;
 
     Intersection intersection;
     if (!FirstIntersection(r, &intersection, objects))
-        return;
+        return false;
 
     vector<int> contributedLights = CastShadowRays(intersection, lights, objects);
     for (auto i : contributedLights)
     {
-        *color += 255.0f * glm::clamp(Phong(intersection, lights[i], cameraPos, ambient), 0.0f, 1.0f);
+        glm::vec3 contribution = 255.0f * glm::clamp(Phong(intersection, lights[i], cameraPos, ambient), 0.0f, 1.0f);
+        /*
+        float eps_cutoff = 0.1f; // cutoff for too small contribution
+        if (glm::dot(contribution, contribution) < eps_cutoff)
+            return;
+        */
+        *color += contribution;
     }
+
+    // Stop if we hit a diffuse surface
+    if (intersection.obj->specular == glm::vec3(0.f, 0.f, 0.f))
+        return true;
+
     Ray reflected;
     reflected.origin = intersection.hitLocation;
     reflected.direction = glm::reflect(r.direction, intersection.normal);
@@ -299,23 +270,15 @@ void TraceRay(Ray r, int depth, glm::vec3 cameraPos, glm::vec3 *color, vector<Li
     refracted.origin = intersection.hitLocation;
     refracted.direction = glm::refract(r.direction, intersection.normal);
     */
-    // TraceRay(reflected, depth - 1, cameraPos, color, lights, objects, ambient);
-    //  TraceRay(refracted, depth - 1, cameraPos, color, lights, objects, ambient);
-    return;
+    TraceRay(reflected, depth - 1, cameraPos, color, lights, objects, ambient);
+    // TraceRay(refracted, depth - 1, cameraPos, color, lights, objects, ambient);
+    return true;
 }
 
 Ray CalculateRay(glm::vec3 cameraPos, glm::vec3 up, glm::vec3 lookAt, int i, int j, int resX, int resY, float fov)
 {
     float scale = glm::tan(glm::radians(fov * 0.5f));
     float aspect_ratio = (float)resX / (float)resY;
-    /*
-    float x = (2 * (i + 0.5f) / (float)resX - 1) * aspect_ratio * scale;
-    float y = (1 - 2 * (j + 0.5f) / (float)resY) * scale;
-
-    Ray r;
-    r.origin = cameraPos;
-    r.direction = glm::normalize(glm::vec3(x, y, -1));
-    */
 
     glm::vec3 w = glm::normalize(cameraPos - lookAt);
     glm::vec3 u = glm::normalize(glm::cross(up, w));
@@ -570,7 +533,8 @@ int main(int argc, char *argv[])
             if (line.rfind("QUAD", 0) == 0)
             {
                 string format[6] = {"POS ", "POS ", "POS ", "DIFF ", "SPEC ", "SHININESS "};
-                Quad *s = new Quad();
+                Triangle *s1 = new Triangle();
+                Triangle *s2 = new Triangle();
                 glm::vec3 p1, p2, p3;
                 for (int i = 0; i < 6; i++)
                 {
@@ -592,7 +556,8 @@ int main(int argc, char *argv[])
                     {
                         float shininess;
                         sscanf(line.substr(format[i].length()).c_str(), "%f", &shininess);
-                        s->shininess = shininess;
+                        s1->shininess = shininess;
+                        s2->shininess = shininess;
                         break;
                     }
 
@@ -606,28 +571,44 @@ int main(int argc, char *argv[])
                     else if (i == 2)
                         p3 = glm::vec3(x, y, z);
                     else if (i == 3)
-                        s->diffuse = glm::vec3(x, y, z);
+                    {
+                        s1->diffuse = glm::vec3(x, y, z);
+                        s2->diffuse = glm::vec3(x, y, z);
+                    }
                     else
-                        s->specular = glm::vec3(x, y, z);
+                    {
+                        s1->specular = glm::vec3(x, y, z);
+                        s2->specular = glm::vec3(x, y, z);
+                    }
                 }
 
-                s->p = p1;
-                s->v1 = p2 - p1;
-                s->v2 = p3 - p1;
-                objects.push_back(unique_ptr<Quad>(s));
+                // Break quad into two triangles
+                // Triangle 1
+                s1->p1 = p1;
+                s1->p2 = p2;
+                s1->p3 = p3;
+                objects.push_back(unique_ptr<Triangle>(s1));
+
+                // Triangle 2
+                s2->p1 = p3;
+                s2->p2 = p2;
+                s2->p3 = p2 + (p3 - p1);
+                objects.push_back(unique_ptr<Triangle>(s2));
             }
         }
     }
 
     std::vector<unsigned char> image_data(resX * resY * channels, 0);
 
-    // #pragma omp parallel for schedule(dynamic)
+    bool hit;
+
+#pragma omp parallel for schedule(dynamic) // paralellize for performance spped boost
     for (int i = 0; i < resX; ++i)
         for (int j = 0; j < resY; ++j)
         {
             Ray ray = CalculateRay(cameraPos, up, lookAt, i, j, resX, resY, fov); // Get the primary ray
             glm::vec3 color = glm::vec3(0.0f, 0.0f, 0.0f);
-            TraceRay(ray, MAXDEPTH, cameraPos, &color, lights, objects, ambient);
+            hit = TraceRay(ray, MAXDEPTH, cameraPos, &color, lights, objects, ambient);
 
             int index = (j * resX + i) * channels;
             image_data[index] = color[0];
