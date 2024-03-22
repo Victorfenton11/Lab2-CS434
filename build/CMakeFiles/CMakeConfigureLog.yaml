@@ -1,0 +1,128 @@
+
+---
+events:
+  -
+    kind: "message-v1"
+    backtrace:
+      - "C:/mingw64/share/cmake-3.28/Modules/CMakeDetermineSystem.cmake:233 (message)"
+      - "CMakeLists.txt"
+    message: |
+      The system is: Windows - 6.2.9200 - AMD64
+  -
+    kind: "message-v1"
+    backtrace:
+      - "C:/mingw64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:17 (message)"
+      - "C:/mingw64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
+      - "C:/mingw64/share/cmake-3.28/Modules/CMakeDetermineCCompiler.cmake:123 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt"
+    message: |
+      Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+      Compiler: C:/cygnus/cygwin-b20/H-i586-cygwin32/bin/gcc.exe 
+      Build flags: 
+      Id flags:  
+      
+      The output was:
+      0
+      
+      
+      Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "a.exe"
+      
+      The C compiler identification is GNU, found in:
+        C:/Users/Victor Fenton/Documents/PurdueCS/CS434/Lab2-CS434/build/CMakeFiles/3.28.2/CompilerIdC/a.exe
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "C:/mingw64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:17 (message)"
+      - "C:/mingw64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
+      - "C:/mingw64/share/cmake-3.28/Modules/CMakeDetermineCXXCompiler.cmake:126 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt"
+    message: |
+      Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
+      Compiler: C:/cygnus/cygwin-b20/H-i586-cygwin32/bin/g++.exe 
+      Build flags: 
+      Id flags:  
+      
+      The output was:
+      0
+      
+      
+      Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "a.exe"
+      
+      The CXX compiler identification is GNU, found in:
+        C:/Users/Victor Fenton/Documents/PurdueCS/CS434/Lab2-CS434/build/CMakeFiles/3.28.2/CompilerIdCXX/a.exe
+      
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/mingw64/share/cmake-3.28/Modules/CMakeDetermineCompilerABI.cmake:57 (try_compile)"
+      - "C:/mingw64/share/cmake-3.28/Modules/CMakeTestCCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt"
+    checks:
+      - "Detecting C compiler ABI info"
+    directories:
+      source: "C:/Users/Victor Fenton/Documents/PurdueCS/CS434/Lab2-CS434/build/CMakeFiles/CMakeScratch/TryCompile-xwoa9n"
+      binary: "C:/Users/Victor Fenton/Documents/PurdueCS/CS434/Lab2-CS434/build/CMakeFiles/CMakeScratch/TryCompile-xwoa9n"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+    buildResult:
+      variable: "CMAKE_C_ABI_COMPILED"
+      cached: true
+      stdout: |
+        Change Dir: 'C:/Users/Victor Fenton/Documents/PurdueCS/CS434/Lab2-CS434/build/CMakeFiles/CMakeScratch/TryCompile-xwoa9n'
+        
+        Run Build Command(s): C:/mingw64/bin/ninja.exe -v cmTC_0376b
+        [1/2] C:\\cygnus\\cygwin-b20\\H-i586-cygwin32\\bin\\gcc.exe   -v -o CMakeFiles/cmTC_0376b.dir/CMakeCCompilerABI.c.obj -c C:/mingw64/share/cmake-3.28/Modules/CMakeCCompilerABI.c
+        Reading specs from \\cygnus\\cygwin-b20\\H-i586-cygwin32\\lib\\gcc-lib\\i586-cygwin32\\egcs-2.91.57\\specs
+        gcc version egcs-2.91.57 19980901 (egcs-1.1 release)
+         \\cygnus\\cygwin-b20\\H-i586-cygwin32\\lib\\gcc-lib\\i586-cygwin32\\egcs-2.91.57\\cpp.exe -lang-c -v -undef -D__GNUC__=2 -D__GNUC_MINOR__=91 -Di386 -D_WIN32 -DWINNT -D_X86_=1 -D__STDC__=1 -D__stdcall=__attribute__((__stdcall__)) -D__cdecl=__attribute__((__cdecl__)) -D__declspec(x)=__attribute__((x)) -D__i386__ -D_WIN32 -D__WINNT__ -D_X86_=1 -D__STDC__=1 -D__stdcall=__attribute__((__stdcall__)) -D__cdecl=__attribute__((__cdecl__)) -D__declspec(x)=__attribute__((x)) -D__i386 -D__WINNT -Asystem(winnt) -Acpu(i386) -Amachine(i386) -remap -Acpu(i386) -Amachine(i386) -Di386 -D__i386 -D__i386__ -Di586 -Dpentium -D__i586 -D__i586__ -D__pentium -D__pentium__ -D__CYGWIN32__ -D__CYGWIN__ C:/mingw64/share/cmake-3.28/Modules/CMakeCCompilerABI.c C:\\Users\\VICTOR~1\\AppData\\Local\\Temp\\ccWeEEj2.i
+        GNU CPP version egcs-2.91.57 19980901 (egcs-1.1 release) (80386, BSD syntax)
+        #include "..." search starts here:
+        #include <...> search starts here:
+         \\cygnus\\cygwin-b20\\H-i586-cygwin32\\lib\\gcc-lib\\i586-cygwin32\\egcs-2.91.57\\..\\..\\..\\..\\..\\include
+         \\cygnus\\cygwin-b20\\H-i586-cygwin32\\lib\\gcc-lib\\i586-cygwin32\\egcs-2.91.57\\..\\..\\..\\..\\i586-cygwin32\\include
+         \\cygnus\\cygwin-b20\\H-i586-cygwin32\\lib\\gcc-lib\\i586-cygwin32\\egcs-2.91.57\\include
+        End of search list.
+         \\cygnus\\cygwin-b20\\H-i586-cygwin32\\lib\\gcc-lib\\i586-cygwin32\\egcs-2.91.57\\cc1.exe C:\\Users\\VICTOR~1\\AppData\\Local\\Temp\\ccWeEEj2.i -quiet -dumpbase CMakeCCompilerABI.c -version -o C:\\Users\\VICTOR~1\\AppData\\Local\\Temp\\ccNt9qPW.s
+        GNU C version egcs-2.91.57 19980901 (egcs-1.1 release) (i586-cygwin32) compiled by GNU C version egcs-2.91.57 19980901 (egcs-1.1 release).
+         \\cygnus\\cygwin-b20\\H-i586-cygwin32\\lib\\gcc-lib\\i586-cygwin32\\egcs-2.91.57\\..\\..\\..\\..\\i586-cygwin32\\bin\\as.exe -o CMakeFiles/cmTC_0376b.dir/CMakeCCompilerABI.c.obj C:\\Users\\VICTOR~1\\AppData\\Local\\Temp\\ccNt9qPW.s
+        [2/2] C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\cygnus\\cygwin-b20\\H-i586-cygwin32\\bin\\gcc.exe  -v CMakeFiles/cmTC_0376b.dir/CMakeCCompilerABI.c.obj -o cmTC_0376b.exe -Wl,--out-implib,libcmTC_0376b.dll.a -Wl,--major-image-version,0,--minor-image-version,0   && cd ."
+        FAILED: cmTC_0376b.exe 
+        C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\cygnus\\cygwin-b20\\H-i586-cygwin32\\bin\\gcc.exe  -v CMakeFiles/cmTC_0376b.dir/CMakeCCompilerABI.c.obj -o cmTC_0376b.exe -Wl,--out-implib,libcmTC_0376b.dll.a -Wl,--major-image-version,0,--minor-image-version,0   && cd ."
+        Reading specs from \\cygnus\\cygwin-b20\\H-i586-cygwin32\\lib\\gcc-lib\\i586-cygwin32\\egcs-2.91.57\\specs
+        gcc version egcs-2.91.57 19980901 (egcs-1.1 release)
+         \\cygnus\\cygwin-b20\\H-i586-cygwin32\\lib\\gcc-lib\\i586-cygwin32\\egcs-2.91.57\\collect2.exe -o cmTC_0376b.exe \\cygnus\\cygwin-b20\\H-i586-cygwin32\\lib\\gcc-lib\\i586-cygwin32\\egcs-2.91.57\\..\\..\\..\\..\\i586-cygwin32\\lib\\crt0.o -L\\cygnus\\cygwin-b20\\H-i586-cygwin32\\lib\\gcc-lib\\i586-cygwin32\\egcs-2.91.57 -L\\cygnus\\cygwin-b20\\H-i586-cygwin32\\lib\\gcc-lib\\i586-cygwin32\\egcs-2.91.57\\..\\..\\..\\..\\i586-cygwin32\\lib CMakeFiles/cmTC_0376b.dir/CMakeCCompilerABI.c.obj --out-implib libcmTC_0376b.dll.a --major-image-version 0 --minor-image-version 0 -lgcc -lcygwin -lkernel32 -ladvapi32 -lshell32 -lgcc
+        /cygnus/cygwin-b20/H-i586-cygwin32/lib/gcc-lib/i586-cygwin32/egcs-2.91.57/../../../../i586-cygwin32/bin//ld: unrecognized option `--out-implib'
+        collect2: ld returned 1 exit status
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/mingw64/share/cmake-3.28/Modules/CMakeTestCCompiler.cmake:56 (try_compile)"
+      - "CMakeLists.txt"
+    checks:
+      - "Check for working C compiler: C:/cygnus/cygwin-b20/H-i586-cygwin32/bin/gcc.exe"
+    directories:
+      source: "C:/Users/Victor Fenton/Documents/PurdueCS/CS434/Lab2-CS434/build/CMakeFiles/CMakeScratch/TryCompile-p9s3db"
+      binary: "C:/Users/Victor Fenton/Documents/PurdueCS/CS434/Lab2-CS434/build/CMakeFiles/CMakeScratch/TryCompile-p9s3db"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+    buildResult:
+      variable: "CMAKE_C_COMPILER_WORKS"
+      cached: true
+      stdout: |
+        Change Dir: 'C:/Users/Victor Fenton/Documents/PurdueCS/CS434/Lab2-CS434/build/CMakeFiles/CMakeScratch/TryCompile-p9s3db'
+        
+        Run Build Command(s): C:/mingw64/bin/ninja.exe -v cmTC_acb4f
+        [1/2] C:\\cygnus\\cygwin-b20\\H-i586-cygwin32\\bin\\gcc.exe    -o CMakeFiles/cmTC_acb4f.dir/testCCompiler.c.obj -c "C:/Users/Victor Fenton/Documents/PurdueCS/CS434/Lab2-CS434/build/CMakeFiles/CMakeScratch/TryCompile-p9s3db/testCCompiler.c"
+        [2/2] C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\cygnus\\cygwin-b20\\H-i586-cygwin32\\bin\\gcc.exe   CMakeFiles/cmTC_acb4f.dir/testCCompiler.c.obj -o cmTC_acb4f.exe -Wl,--out-implib,libcmTC_acb4f.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && cd ."
+        FAILED: cmTC_acb4f.exe 
+        C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\cygnus\\cygwin-b20\\H-i586-cygwin32\\bin\\gcc.exe   CMakeFiles/cmTC_acb4f.dir/testCCompiler.c.obj -o cmTC_acb4f.exe -Wl,--out-implib,libcmTC_acb4f.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && cd ."
+        /cygnus/cygwin-b20/H-i586-cygwin32/lib/gcc-lib/i586-cygwin32/egcs-2.91.57/../../../../i586-cygwin32/bin//ld: unrecognized option `--out-implib'
+        collect2: ld returned 1 exit status
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+...

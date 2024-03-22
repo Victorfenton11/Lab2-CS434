@@ -265,13 +265,9 @@ bool TraceRay(Ray r, int depth, glm::vec3 cameraPos, glm::vec3 *color, vector<Li
     Ray reflected;
     reflected.origin = intersection.hitLocation;
     reflected.direction = glm::reflect(r.direction, intersection.normal);
-    /*
-    Ray refracted;
-    refracted.origin = intersection.hitLocation;
-    refracted.direction = glm::refract(r.direction, intersection.normal);
-    */
+
     TraceRay(reflected, depth - 1, cameraPos, color, lights, objects, ambient);
-    // TraceRay(refracted, depth - 1, cameraPos, color, lights, objects, ambient);
+
     return true;
 }
 
@@ -314,7 +310,7 @@ int main(int argc, char *argv[])
     int resX = 800;
     int resY = 800;
     int MAXDEPTH = 1;
-    int ANTIALIAS;
+    int ANTIALIAS = 0;
     glm::vec3 bg_color = glm::vec3(0.f);
     const int channels = 3; // Red, Green, Blue
     float fov = 90.0f;
@@ -590,9 +586,9 @@ int main(int argc, char *argv[])
                 objects.push_back(unique_ptr<Triangle>(s1));
 
                 // Triangle 2
-                s2->p1 = p3;
-                s2->p2 = p2;
-                s2->p3 = p2 + (p3 - p1);
+                s2->p1 = p1;
+                s2->p2 = p3;
+                s2->p3 = p3 + (p1 - p2);
                 objects.push_back(unique_ptr<Triangle>(s2));
             }
         }
