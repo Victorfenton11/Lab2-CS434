@@ -31,6 +31,8 @@ Purdue University
 
 using namespace std;
 
+int MAXDEPTH = 1;
+
 class Surface;
 class Sphere;
 class Triangle;
@@ -98,7 +100,7 @@ public:
             res->obj = this;
 
             // Add bias to the intersection point to avoid self-intersection
-            res->hitLocation += res->normal * 0.005f;
+            res->hitLocation += res->normal * 0.001f;
 
             return true;
         }
@@ -112,7 +114,7 @@ public:
             res->obj = this;
 
             // Add bias to the intersection point
-            res->hitLocation += res->normal * 0.005f;
+            res->hitLocation += res->normal * 0.001f;
 
             return true;
         }
@@ -137,7 +139,7 @@ public:
         glm::vec3 tmp1 = glm::cross(p, q);
 
         float dot1 = glm::dot(tmp1, r.direction);
-        float eps = 0.0000000001;
+        float eps = 0.00000001;
         if (fabs(dot1) < eps)
             return false;
 
@@ -172,13 +174,13 @@ public:
         res->t = t;
         res->hitLocation = P;
         res->normal = glm::normalize(tmp1);       // Assuming counter-clockwise winding order
-        res->hitLocation += 0.005f * res->normal; // Add bias to avoid self-intersection
+        res->hitLocation += 0.001f * res->normal; // Add bias to avoid self-intersection
         res->obj = this;
         return true;
     }
 };
 
-glm::vec3 Phong(Intersection p, Light l, glm::vec3 cameraPos, float ambient)
+glm::vec3 Phong(Intersection p, Light l, glm::vec3 cameraPos)
 {
     glm::vec3 diffuse = glm::vec3(0.0f);
     glm::vec3 specular = glm::vec3(0.0f);
@@ -194,7 +196,7 @@ glm::vec3 Phong(Intersection p, Light l, glm::vec3 cameraPos, float ambient)
     float specular_factor = std::pow(std::max(0.0f, glm::dot(R, V)), p.obj->shininess);
     specular = p.obj->specular * l.specular * specular_factor;
 
-    return glm::vec3(ambient) + diffuse + specular;
+    return diffuse + specular;
 }
 
 bool FirstIntersection(Ray r, Intersection *first, vector<unique_ptr<Surface>> &objects)
@@ -202,7 +204,7 @@ bool FirstIntersection(Ray r, Intersection *first, vector<unique_ptr<Surface>> &
     first->t = 100000.0f;
     bool hit = false;
 
-    for (int i = 0; i < objects.size(); i++)
+    for (unsigned int i = 0; i < objects.size(); i++)
     {
         Intersection current;
         if (objects[i]->intersect(&current, r))
@@ -222,7 +224,7 @@ vector<int> CastShadowRays(Intersection intersection, vector<Light> lights, vect
 {
     vector<int> visible_lights;
     Intersection p;
-    for (int i = 0; i < lights.size(); i++)
+    for (unsigned int i = 0; i < lights.size(); i++)
     {
         Ray shadow_ray;
         shadow_ray.origin = intersection.hitLocation;
@@ -237,38 +239,47 @@ vector<int> CastShadowRays(Intersection intersection, vector<Light> lights, vect
     return visible_lights;
 }
 
-bool TraceRay(Ray r, int depth, glm::vec3 cameraPos, glm::vec3 *color, vector<Light> lights, vector<unique_ptr<Surface>> &objects, float ambient)
+void TraceRay(Ray r, int depth, glm::vec3 cameraPos, glm::vec3 bg, glm::vec3 *color, vector<Light> lights, vector<unique_ptr<Surface>> &objects, float ambient, float k_spec)
 {
     if (depth <= 0)
-        return true;
+        return; // Stop if too deep recursion
 
     Intersection intersection;
     if (!FirstIntersection(r, &intersection, objects))
-        return false;
+    {
+        if (depth == MAXDEPTH) // If no intersection on main ray, set to background color
+            *color = bg;
+        return;
+    }
 
+    glm::vec3 contribution(0.f);
     vector<int> contributedLights = CastShadowRays(intersection, lights, objects);
     for (auto i : contributedLights)
-    {
-        glm::vec3 contribution = 255.0f * glm::clamp(Phong(intersection, lights[i], cameraPos, ambient), 0.0f, 1.0f);
-        /*
-        float eps_cutoff = 0.1f; // cutoff for too small contribution
-        if (glm::dot(contribution, contribution) < eps_cutoff)
-            return;
-        */
-        *color += contribution;
-    }
+        contribution += Phong(intersection, lights[i], cameraPos);
+
+    float contribution_k = 1;
+    if (depth != MAXDEPTH)
+        contribution_k = k_spec;
+
+    // Always include ambient contribution (not included in phong)
+    glm::vec3 ambient_contrib = glm::vec3(ambient) * intersection.obj->diffuse;
+    *color += contribution_k * 255.f * glm::clamp(ambient_contrib + contribution, 0.f, 1.f);
+
+    float eps_cutoff = 0.00001f; // cutoff for too small contribution
+    if (glm::dot(contribution, contribution) < eps_cutoff)
+        return; // Stop if contribution is too small
 
     // Stop if we hit a diffuse surface
     if (intersection.obj->specular == glm::vec3(0.f, 0.f, 0.f))
-        return true;
+        return;
 
     Ray reflected;
     reflected.origin = intersection.hitLocation;
     reflected.direction = glm::reflect(r.direction, intersection.normal);
 
-    TraceRay(reflected, depth - 1, cameraPos, color, lights, objects, ambient);
+    TraceRay(reflected, depth - 1, cameraPos, bg, color, lights, objects, ambient, contribution_k * k_spec);
 
-    return true;
+    return;
 }
 
 Ray CalculateRay(glm::vec3 cameraPos, glm::vec3 up, glm::vec3 lookAt, int i, int j, int resX, int resY, float fov)
@@ -309,13 +320,13 @@ int main(int argc, char *argv[])
     // Set up scene, define and save all objects in scene
     int resX = 800;
     int resY = 800;
-    int MAXDEPTH = 1;
-    int ANTIALIAS = 0;
+    int ANTIALIAS = 1;
     glm::vec3 bg_color = glm::vec3(0.f);
     const int channels = 3; // Red, Green, Blue
     float fov = 90.0f;
     float ambient = 0.0f;
-    glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 0.0f);
+    float k_spec = 0.5; // reflection coefficient (how much the contribution of a ray decreases after each reflection)
+    glm::vec3 cameraPos = glm::vec3(0.f);
     glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
     glm::vec3 lookAt = glm::vec3(0.0f, 0.0f, -1.0f);
     vector<Light> lights;
@@ -336,6 +347,18 @@ int main(int argc, char *argv[])
             if (line.rfind("ANTIALIAS ", 0) == 0)
             {
                 sscanf(line.substr(10).c_str(), "%d", &ANTIALIAS);
+                ANTIALIAS = max(1, ANTIALIAS); // Minimum factor is 1 (no antialias)
+                continue;
+            }
+
+            if (line.rfind("KSPEC ", 0) == 0)
+            {
+                sscanf(line.substr(6).c_str(), "%f", &k_spec);
+                if (k_spec < 0.f || k_spec > 1.f)
+                {
+                    cout << "Invalid Reflection Coefficient Entered. Tracing will proceed using KSPEC = 0.5" << endl;
+                    k_spec = 0.5;
+                }
                 continue;
             }
 
@@ -362,6 +385,7 @@ int main(int argc, char *argv[])
             if (line.rfind("MAXDEPTH ", 0) == 0)
             {
                 sscanf(line.substr(9).c_str(), "%d", &MAXDEPTH);
+                MAXDEPTH = max(1, MAXDEPTH); // Minimum depth is 1 (ray casting)
                 continue;
             }
 
@@ -464,7 +488,7 @@ int main(int argc, char *argv[])
                     {
                         s->pos = glm::vec3(x, y, z);
                         int rad_index = line.find("RADIUS");
-                        if (rad_index == string::npos)
+                        if (rad_index == static_cast<int>(string::npos))
                         {
                             cout << "Invalid Sphere format in input file" << endl;
                             return 2;
@@ -596,20 +620,30 @@ int main(int argc, char *argv[])
 
     std::vector<unsigned char> image_data(resX * resY * channels, 0);
 
-    bool hit;
+    int supersample_resX = resX * ANTIALIAS;
+    int supersample_resY = resY * ANTIALIAS;
 
 #pragma omp parallel for schedule(dynamic) // paralellize for performance spped boost
     for (int i = 0; i < resX; ++i)
         for (int j = 0; j < resY; ++j)
         {
-            Ray ray = CalculateRay(cameraPos, up, lookAt, i, j, resX, resY, fov); // Get the primary ray
-            glm::vec3 color = glm::vec3(0.0f, 0.0f, 0.0f);
-            hit = TraceRay(ray, MAXDEPTH, cameraPos, &color, lights, objects, ambient);
+            // Anti-aliasing
+            glm::vec3 color_sum(0.f);
+            for (int m = 0; m < ANTIALIAS; m++)
+                for (int n = 0; n < ANTIALIAS; n++)
+                {
+                    Ray ray = CalculateRay(cameraPos, up, lookAt, i * ANTIALIAS + m, j * ANTIALIAS + n, supersample_resX, supersample_resY, fov); // Get the primary ray
+                    glm::vec3 color(0.f);
+                    TraceRay(ray, MAXDEPTH, cameraPos, bg_color, &color, lights, objects, ambient, k_spec);
+                    color_sum += color;
+                }
+
+            glm::vec3 final_color = color_sum / (float)(ANTIALIAS * ANTIALIAS);
 
             int index = (j * resX + i) * channels;
-            image_data[index] = color[0];
-            image_data[index + 1] = color[1];
-            image_data[index + 2] = color[2];
+            image_data[index] = final_color[0];
+            image_data[index + 1] = final_color[1];
+            image_data[index + 2] = final_color[2];
         }
 
     // Output Image

@@ -1,15 +1,13 @@
-// Cornell Box with 3 spheres and walls
-ANTIALIAS 3
-BACKGROUND 0 0 0        // Background color
-MAXDEPTH 17              // Raytracing depth
+ANTIALIAS 2
+BACKGROUND 0 0 0
+MAXDEPTH 7
 FOV 90
 LOOKAT 0 0 0
 CAMERA 0 0 10
 UP 0 1 0
-AMBIENT 0.1
 
 LIGHT
-    POS 0 4.9 5
+    POS 0 0 10
     DIFF 1.0 1.0 1.0	// White light
     SPEC 1.0 1.0 1.0	// Full white specular
 
@@ -19,7 +17,7 @@ QUAD
     POS -5 -5 0
     POS 5 -5 0
     DIFF 1.0 0 0
-    SPEC 0.0 0.0 0.0
+    SPEC 0 0 0
 	SHININESS 20.0
 
 // Left wall (green)
@@ -29,7 +27,7 @@ QUAD
     POS -5 -5 0
     DIFF 0 1.0 0
     SPEC 0 0 0
-	SHININESS 200.0
+	SHININESS 20.0
 
 // Right wall (green)
 QUAD
@@ -38,7 +36,7 @@ QUAD
     POS 5 -5 5
     DIFF 0 1.0 0
     SPEC 0 0 0
-	SHININESS 200.0
+	SHININESS 20.0
 
 // Floor (yellow)
 QUAD
@@ -47,16 +45,12 @@ QUAD
     POS -5 -5 5
     DIFF 1.0 1.0 0
     SPEC 0 0 0
-	SHININESS 200.0
+	SHININESS 0
 
 SPHERE
-    POS 2 -2 3.95 RADIUS 1
-    DIFF 0 0 0.8
-    SPEC 0 0 0
+    POS 0 0 5 RADIUS 1
+    DIFF 0.5 0.5 0.5 // gray sphere
+    SPEC 1 1 1 // Perfect mirror
     SHININESS 10
 
-SPHERE
-    POS -2 -3 2 RADIUS 0.5
-    DIFF 0.9 0.9 0.9
-    SPEC 0 0 0
-    SHININESS 10
+KSPEC 0.5
