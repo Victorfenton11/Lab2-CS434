@@ -36,3 +36,7 @@ To create your own input file, note that the parsing was tailored for a specific
 - The recursive decay coefficient can be specified with a line: KSPEC 0.8
 - Aspect ratio may not be provided in the input file, instead, resolution is expected as RESOLUTION x y. Default is 800x800 if not specified.
 - Refer to parser code starting on line 335 for more details.
+
+![full_test](https://github.com/Victorfenton11/Lab2-CS434/assets/62811463/0820e28a-7cc2-447d-a604-954771f85a64)
+![recursive_test](https://github.com/Victorfenton11/Lab2-CS434/assets/62811463/a4d6febb-0699-4e6a-b121-7fdeb7efb18a)
+![cornell_diffuse](https://github.com/Victorfenton11/Lab2-CS434/assets/62811463/1cc152c5-2930-4613-8fad-e460e33d28ec)
